@@ -51,10 +51,16 @@ so users can download calibrated rotations directly instead of recomputing them.
 | **OSCAR (ours)** | **2.28** | **71.86** | **69.42** | **74.17** | **78.16** |
 | _Gap of OSCAR vs BF16_ | | _−3.78_ | _−1.42_ | _−0.02_ | _+0.27_ |
 
+<details>
+<summary><b>Details for each task </b> </summary>
+<img width="1404" height="1052" alt="image" src="https://github.com/user-attachments/assets/4f16b546-f93d-4393-a4c0-b882c09674a5" />
+</details>
+
 OSCAR is the only INT2 method that stays within a few pp of BF16 across
 every model. QuaRot-INT2 and naive INT2 collapse on reasoning + coding
 tasks. Saw-INT4 is a strong INT4 reference, but OSCAR matches or beats it
 **at roughly half the storage** (≈2 bits per KV element).
+
 
 <details>
 <summary><b>Baseline notes</b> — TurboQuant / QuaRot / Saw-INT4 / Naive INT2 configurations</summary>
