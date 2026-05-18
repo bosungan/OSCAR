@@ -23,11 +23,14 @@
 set -euo pipefail
 export HF_HOME="${HF_HOME:-/shared/huggingface}"
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+
 : "${MODEL:?MODEL is required}"
 : "${ROT_DIR:?ROT_DIR is required}"
 : "${RUN_DIR:?RUN_DIR is required}"
 
-SGLANG_RESEARCH_DIR="${SGLANG_RESEARCH_DIR:-/home/charlie/CoQuant/sglang-research}"
+SGLANG_RESEARCH_DIR="${SGLANG_RESEARCH_DIR:-${REPO_ROOT}/sglang-research}"
 TP_SIZE="${TP_SIZE:-4}"
 GPUS="${GPUS:-${CUDA_VISIBLE_DEVICES:-0,1,2,3}}"
 PORT="${PORT:-31057}"
@@ -41,15 +44,15 @@ NUM_WORKERS="${NUM_WORKERS:-32}"
 N_REPEATS="${N_REPEATS:-1}"
 NAME="${NAME:-gpqa_oscar}"
 
-CONDA_BASE="${CONDA_BASE:-/home/charlie/miniconda3}"
-CONDA_ENV_NAME="${CONDA_ENV_NAME:-coquant}"
+CONDA_BASE="${CONDA_BASE:-${HOME}/miniconda3}"
+CONDA_ENV_NAME="${CONDA_ENV_NAME:-oscar}"
 source "${CONDA_BASE}/etc/profile.d/conda.sh"
 conda activate "${CONDA_ENV_NAME}"
 
 export PATH="${CONDA_PREFIX}/bin:${PATH}"
 # Prepend per-rank Triton cache redirector so TP workers don't race on shared
 # launcher .so / metadata files in TRITON_CACHE_DIR.
-export PYTHONPATH="/home/charlie/CoQuant/rotation/_triton_per_rank:${SGLANG_RESEARCH_DIR}/python:${PYTHONPATH:-}"
+export PYTHONPATH="${REPO_ROOT}/rotation/_triton_per_rank:${SGLANG_RESEARCH_DIR}/python:${PYTHONPATH:-}"
 export PYTHONUNBUFFERED=1
 
 mkdir -p "${RUN_DIR}"
@@ -138,7 +141,7 @@ if ! curl -s "http://127.0.0.1:${PORT}/health" >/dev/null 2>&1; then
 fi
 
 echo "[eval-oscar] launching eval via simple_evals (vendored at third_party/simple_evals)"
-RUNNER="/home/charlie/CoQuant/rotation/_eval_runner/run_simple_eval.py"
+RUNNER="${REPO_ROOT}/rotation/_eval_runner/run_simple_eval.py"
 python "${RUNNER}" \
     --task gpqa \
     --model "${MODEL}" \

@@ -40,8 +40,8 @@ echo "[compute_rotation] output_dir=${OUTPUT_DIR}"
 # Pick a python with torch. Override with PY=/path/to/python3 if needed.
 if [[ -z "${PY:-}" ]]; then
     for candidate in \
-        /home/charlie/miniconda3/envs/coquant/bin/python3 \
-        /home/charlie/anaconda3/envs/coquant/bin/python3 \
+        ${HOME}/miniconda3/envs/oscar/bin/python3 \
+        ${HOME}/anaconda3/envs/oscar/bin/python3 \
         "$(command -v python3 || true)"
     do
         if [[ -x "${candidate}" ]]; then

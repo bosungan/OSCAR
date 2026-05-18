@@ -4,7 +4,8 @@ set -euo pipefail
 export HF_HOME="${HF_HOME:-/shared/huggingface}"
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-SGLANG_DUMP_DIR="${SGLANG_DUMP_DIR:-/home/charlie/CoQuant/sglang-dump-qkv}"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
+SGLANG_DUMP_DIR="${SGLANG_DUMP_DIR:-${REPO_ROOT}/sglang-dump-qkv}"
 
 MODEL="${MODEL:-zai-org/GLM-4.7-FP8}"
 TP_SIZE="${TP_SIZE:-8}"
@@ -29,14 +30,14 @@ CALIB_DIR="${SCRIPT_DIR}/${DATASET}/latest"
 export DUMP_KVCACHE_DIR="${DUMP_KVCACHE_DIR:-${CALIB_DIR}/qkv_dumps/gpqa}"
 mkdir -p "${DUMP_KVCACHE_DIR}"
 
-CONDA_ENV_NAME="${CONDA_ENV_NAME:-coquant}"
+CONDA_ENV_NAME="${CONDA_ENV_NAME:-oscar}"
 if [[ -n "${CONDA_PREFIX:-}" && -x "${CONDA_PREFIX}/bin/python3" ]]; then
     CONDA_ENV_DIR="${CONDA_ENV_DIR:-${CONDA_PREFIX}}"
 else
-    CONDA_BASE="${CONDA_BASE:-/home/charlie/anaconda3}"
+    CONDA_BASE="${CONDA_BASE:-${HOME}/anaconda3}"
     CONDA_ENV_DIR="${CONDA_ENV_DIR:-${CONDA_BASE}/envs/${CONDA_ENV_NAME}}"
-    if [[ ! -x "${CONDA_ENV_DIR}/bin/python3" && -x "/home/charlie/miniconda3/envs/${CONDA_ENV_NAME}/bin/python3" ]]; then
-        CONDA_ENV_DIR="/home/charlie/miniconda3/envs/${CONDA_ENV_NAME}"
+    if [[ ! -x "${CONDA_ENV_DIR}/bin/python3" && -x "${HOME}/miniconda3/envs/${CONDA_ENV_NAME}/bin/python3" ]]; then
+        CONDA_ENV_DIR="${HOME}/miniconda3/envs/${CONDA_ENV_NAME}"
     fi
 fi
 PY="${PY:-${CONDA_ENV_DIR}/bin/python3}"
@@ -45,7 +46,7 @@ export PATH="${CONDA_ENV_DIR}/bin:${PATH}"
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-${GPU}}"
 export PYTHONUNBUFFERED=1
 
-LOCAL_PYTHONPATH="/home/charlie/CoQuant/rotation/_dump_compat:${SGLANG_DUMP_DIR}/python"
+LOCAL_PYTHONPATH="${REPO_ROOT}/rotation/_dump_compat:${SGLANG_DUMP_DIR}/python"
 if [[ -n "${PYTHONPATH:-}" ]]; then
     LOCAL_PYTHONPATH="${LOCAL_PYTHONPATH}:${PYTHONPATH}"
 fi
@@ -127,7 +128,7 @@ if [[ "${elapsed}" -ge "${MAX_WAIT_SECS}" ]]; then
 fi
 
 log "Sending GPQA prompts (max_tokens=1) to trigger the Q/K/V dump hook"
-"${PY_EVAL}" /home/charlie/CoQuant/rotation/_eval_runner/dump_gpqa_prompts.py \
+"${PY_EVAL}" ${REPO_ROOT}/rotation/_eval_runner/dump_gpqa_prompts.py \
     --model "${MODEL}" \
     --base-url "http://127.0.0.1:${PORT}/v1" \
     --num-prompts 198 \
