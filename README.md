@@ -247,11 +247,14 @@ Override per `bash rotation/<model>/save_qkv_<model>.sh ENV=val`:
 ## Citation
 
 ```bibtex
-@article{zhou2026oscar,
-  title  = {OSCAR: Offline Spectral Covariance-Aware Rotation for 2-bit KV Cache Quantization},
-  author = {Zhou, Zhongzhu and Zhuang, Donglin and Li, Jisen and Chen, Ziyan and Song, Shuaiwen Leon and Athiwaratkun, Ben and Wu, Xiaoxia},
-  year   = {2026},
-  note   = {Together AI; University of Sydney; UIUC},
+@misc{zhou2026oscarofflinespectralcovarianceaware,
+      title={OSCAR: Offline Spectral Covariance-Aware Rotation for 2-bit KV Cache Quantization},
+      author={Zhongzhu Zhou and Donglin Zhuang and Jisen Li and Ziyan Chen and Shuaiwen Leon Song and Ben Athiwaratkun and Xiaoxia Wu},
+      year={2026},
+      eprint={2605.17757},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2605.17757},
 }
 ```
 
