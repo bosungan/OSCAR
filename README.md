@@ -50,10 +50,9 @@ so users can download calibrated rotations directly instead of recomputing them.
 ## Main results
 <details>
 <summary><b>Multi-Modal & LongBench</b> </summary>
-Use Rotation and Run Script in zhongzhu/VL branch.
+Use Rotation and Run Script in zhongzhu/VL branch. Baseline numbers taken from arxiv.org/abs/2605.19660 (Su et al., 2026).
 
 OCRBench comparison
-
 | Method                          | Qwen3-VL-8B | Qwen3-VL-4B |
 |---------------------------------|------------:|------------:|
 | 16-bit Baseline                 | 858         | 852         |
