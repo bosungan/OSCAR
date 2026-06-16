@@ -44,3 +44,6 @@ node_modules/
 
 # Claude
 docs/
+
+# Traces
+profiling/traces/
