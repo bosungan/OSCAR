@@ -36,6 +36,10 @@
 #
 # Env overrides (prepend as VAR=value):
 #   CHUNK     --chunked-prefill-size (THE point)   (default 8192)
+#   OSCAR_BENCH_TIMEOUT  client HTTP read timeout, sec (default 7200=2h). Long-ctx
+#               prefill (512k/1M) takes many minutes; the stock sglang client caps
+#               this at 600s and would ReadTimeout. The _run_bench_server.py
+#               launcher raises it. Bump higher for 1M+.
 #   PROFILE_STEPS  decode steps to RECORD           (default 4; must be <= OUTPUT_LEN)
 #   START_STEP  decode step to START recording at   (default unset = from step 0,
 #               which includes the warmup/flush outlier; set e.g. 8 to skip to
@@ -65,7 +69,7 @@ PROFILE_STEPS="${PROFILE_STEPS:-4}"
 START_STEP="${START_STEP:-}"          # empty => record from decode step 0
 QUANT="${QUANT:-oscar}"
 GRAPH="${GRAPH:-off}"
-MEM_FRAC="${MEM_FRAC:-0.85}"
+MEM_FRAC="${MEM_FRAC:-0.80}"
 MAX_RUNNING="${MAX_RUNNING:-$BATCH}"
 PORT="${PORT:-31000}"
 
@@ -118,7 +122,7 @@ fi
 # bench_one_batch_server self-launches the server (no --base-url) and drives one
 # batch through it. --profile --profile-by-stage turns on torch's profiler INSIDE
 # the server, dumping per-stage Chrome traces under --profile-output-dir.
-base=(python -m sglang.bench_one_batch_server "${SRV[@]}"
+base=(python "$REPO/profiling/server/_run_bench_server.py" "${SRV[@]}"
       --batch-size "$BATCH" --input-len "$SEQ" --output-len "$OUTPUT_LEN"
       --skip-warmup
       --profile --profile-by-stage --profile-steps "$PROFILE_STEPS"
