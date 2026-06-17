@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # report.sh — summarize one or more .nsys-rep traces without the GUI.
-# Usage: bash profiling/report.sh traces/oscar_ctx64k_decode.nsys-rep [...]
+# Usage: bash profiling/single-batch/report.sh traces/oscar_ctx64k.nsys-rep [...]
+#   (generic .nsys-rep summarizer — also works on multi-batch traces)
 set -euo pipefail
 export PATH="/home/bosungan/.conda/envs/oscar/bin:$PATH"
 for rep in "$@"; do

@@ -26,12 +26,15 @@ INT2 attention kernel does extra work per KV element.
 
 ```bash
 # args: INPUT_LEN OUTPUT_LEN [GPU] [TAG]
-bash profiling/profile_oscar.sh 4096   64 3 ctx4k     # short baseline
-bash profiling/profile_oscar.sh 32768  64 3 ctx32k
-bash profiling/profile_oscar.sh 131072 32 3 ctx128k   # long context
+bash profiling/single-batch/profile_oscar.sh 4096   64 3 ctx4k     # short baseline
+bash profiling/single-batch/profile_oscar.sh 32768  64 3 ctx32k
+bash profiling/single-batch/profile_oscar.sh 131072 32 3 ctx128k   # long context
 ```
-Each call writes, under `profiling/traces/`:
-`oscar_<TAG>_prefill.nsys-rep`, `oscar_<TAG>_decode.nsys-rep` (+ `.log` with latency).
+Each call writes, under `profiling/single-batch/traces/`:
+`oscar_<TAG>.nsys-rep` — ONE whole-run trace containing both prefill and decode (+ `.log` with latency).
+
+> For **multiple (batch, seq) combinations** in one sweep, use the multi-batch wrapper instead:
+> `profiling/multi-batch/profile_oscar_multi.sh` (see `profiling/multi-batch/MULTI_BATCH_GUIDE.md`).
 
 Key knobs (prepend as env):
 - `GRAPH=off` (default) → **eager**, so *every* kernel appears in the trace (use this to SEE ops).
@@ -54,8 +57,7 @@ fine, we only want realistic compute/memory traffic.
 ## 2. Read it — without the GUI
 
 ```bash
-bash profiling/report.sh profiling/traces/oscar_ctx128k_decode.nsys-rep \
-                         profiling/traces/oscar_ctx128k_prefill.nsys-rep
+bash profiling/single-batch/report.sh profiling/single-batch/traces/oscar_ctx128k.nsys-rep
 ```
 This prints, per trace: GPU kernel time by op (`cuda_gpu_kern_sum`) and the CPU API summary
 (`cuda_api_sum`: `cudaLaunchKernel`, `cudaDeviceSynchronize`, `cudaGraphLaunch`).
@@ -63,13 +65,13 @@ This prints, per trace: GPU kernel time by op (`cuda_gpu_kern_sum`) and the CPU 
 Most useful single command — the **per-instance timeline** of the decode attention kernel, to watch
 it grow with context:
 ```bash
-nsys stats --report cuda_gpu_trace --format table profiling/traces/oscar_ctx128k_decode.nsys-rep \
+nsys stats --report cuda_gpu_trace --format table profiling/single-batch/traces/oscar_ctx128k.nsys-rep \
   | grep _fwd_grouped_kernel_stage1_quant_int2
 ```
 
 ## 2b. Read it — in the Nsight Systems GUI (the visual timeline you want)
 ```bash
-nsys-ui profiling/traces/oscar_ctx128k_decode.nsys-rep   # needs a display (X-forward or copy to laptop)
+nsys-ui profiling/single-batch/traces/oscar_ctx128k.nsys-rep   # needs a display (X-forward or copy to laptop)
 ```
 - The **CUDA HW > Kernels** row is the GPU timeline. Zoom to one decode step (between two
   `cudaDeviceSynchronize`); you'll see the per-layer pattern repeat 36×.

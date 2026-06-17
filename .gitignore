@@ -45,5 +45,6 @@ node_modules/
 # Claude
 docs/
 
-# Traces
+# Traces (single-batch + multi-batch sweeps; any traces/ under profiling/)
 profiling/traces/
+profiling/**/traces/
