@@ -48,7 +48,7 @@ def classify(n, d):
     if "fused_rope" in s:                         return ("RoPE", "misc")
     if "store_kvcache" in s:                      return ("store K/V -> HP win", "misc")
     if "stage1_quant_int2" in s:                  return ("[OSCAR] INT2-KV attn", "oscar")
-    if "_fwd_grouped_kernel_stage1" in s:         return ("HP-window attn", "attn")
+    if "_fwd_grouped_kernel_stage1" in s:         return ("[OSCAR] HP-window attn", "oscar")
     if "stage2_unified" in s:                     return ("[OSCAR] merge HP+INT2", "oscar")
     if "act_and_mul" in s:                        return ("SwiGLU (silu*up)", "misc")
     if "memcpy" in s.lower():                     return ("memcpy", "misc")
@@ -102,8 +102,8 @@ svg.append(f'<text x="{W/2}" y="49" text-anchor="middle" font-size="13" fill="#4
            f'this figure shows ONE layer (the step repeats it × 36) · bars duration-proportional</text>')
 
 # colour legend
-LEG = [("proj", "Dense GEMM (model — not OSCAR)"), ("attn", "HP-window attention"),
-       ("oscar", "OSCAR-specific (rotation / INT2 / merge)"), ("norm", "Norm"), ("misc", "RoPE / store / misc")]
+LEG = [("proj", "Dense GEMM (model — not OSCAR)"),
+       ("oscar", "OSCAR-specific (rotation / INT2 / HP-window / merge)"), ("norm", "Norm"), ("misc", "RoPE / store / misc")]
 lx = ML
 for k, txt in LEG:
     svg.append(f'<rect x="{lx}" y="66" width="15" height="15" fill="{COL[k]}" stroke="black" stroke-width="0.6"/>')
@@ -155,7 +155,7 @@ svg.append(f'<text x="{ML}" y="{H-34}" font-size="12" fill="#333">'
            f'Per layer: GPU busy ≈ {busy:.0f} µs ≈ wall {wall_us:.0f} µs (util ~{busy/wall_us*100:.0f}%). '
            f'vs eager ~1032 µs/layer: graph replay removed ~{1032-wall_us:.0f} µs of host launch gaps.</text>')
 svg.append(f'<text x="{ML}" y="{H-16}" font-size="12" fill="#333">'
-           f'OSCAR-specific kernels (red) ≈ {osc:.0f} µs ({osc/busy*100:.0f}% of busy): rotation GEMMs + INT2 attn + HP/INT2 merge + V-absorb '
+           f'OSCAR-specific kernels (red) ≈ {osc:.0f} µs ({osc/busy*100:.0f}% of busy): rotation GEMMs + INT2 attn + HP-window attn + merge + V-absorb '
            f'— under graph replay, the honest serving cost (no launch overhead).</text>')
 svg.append('</svg>')
 open(OUT, "w").write("\n".join(svg))

@@ -4,14 +4,12 @@
 <text x="750.0" y="49" text-anchor="middle" font-size="13" fill="#444">batch 1 · seq 16k · CUDA-graph replay (launch gaps removed) · 1 layer ≈ 661 µs · this figure shows ONE layer (the step repeats it × 36) · bars duration-proportional</text>
 <rect x="60" y="66" width="15" height="15" fill="#4878cf" stroke="black" stroke-width="0.6"/>
 <text x="81" y="78" font-size="12" fill="#333">Dense GEMM (model — not OSCAR)</text>
-<rect x="298.0" y="66" width="15" height="15" fill="#7fb069" stroke="black" stroke-width="0.6"/>
-<text x="319.0" y="78" font-size="12" fill="#333">HP-window attention</text>
-<rect x="459.0" y="66" width="15" height="15" fill="#d1495b" stroke="black" stroke-width="0.6"/>
-<text x="480.0" y="78" font-size="12" fill="#333">OSCAR-specific (rotation / INT2 / merge)</text>
-<rect x="767.0" y="66" width="15" height="15" fill="#9e9e9e" stroke="black" stroke-width="0.6"/>
-<text x="788.0" y="78" font-size="12" fill="#333">Norm</text>
-<rect x="823.0" y="66" width="15" height="15" fill="#cccccc" stroke="black" stroke-width="0.6"/>
-<text x="844.0" y="78" font-size="12" fill="#333">RoPE / store / misc</text>
+<rect x="298.0" y="66" width="15" height="15" fill="#d1495b" stroke="black" stroke-width="0.6"/>
+<text x="319.0" y="78" font-size="12" fill="#333">OSCAR-specific (rotation / INT2 / HP-window / merge)</text>
+<rect x="690.0" y="66" width="15" height="15" fill="#9e9e9e" stroke="black" stroke-width="0.6"/>
+<text x="711.0" y="78" font-size="12" fill="#333">Norm</text>
+<rect x="746.0" y="66" width="15" height="15" fill="#cccccc" stroke="black" stroke-width="0.6"/>
+<text x="767.0" y="78" font-size="12" fill="#333">RoPE / store / misc</text>
 <line x1="73.7" y1="220" x2="1446.3" y2="220" stroke="#999"/>
 <line x1="73.7" y1="220" x2="73.7" y2="225" stroke="#999"/>
 <text x="73.7" y="239" text-anchor="middle" font-size="11" fill="#777">0</text>
@@ -44,9 +42,9 @@
 <line x1="258.9" y1="170" x2="258.9" y2="133.0" stroke="#bbb" stroke-width="0.5"/>
 <text x="258.9" y="130.0" text-anchor="middle" font-size="12" fill="#d1495b" font-weight="bold">9</text>
 <rect x="262.3" y="170" width="2.5" height="44" fill="#cccccc" stroke="black" stroke-width="0.6"/>
-<rect x="264.8" y="170" width="14.2" height="44" fill="#7fb069" stroke="black" stroke-width="0.6"/>
+<rect x="264.8" y="170" width="14.2" height="44" fill="#d1495b" stroke="black" stroke-width="0.6"/>
 <line x1="271.9" y1="170" x2="271.9" y2="165.0" stroke="#bbb" stroke-width="0.5"/>
-<text x="271.9" y="162.0" text-anchor="middle" font-size="12" fill="#222" font-weight="bold">11</text>
+<text x="271.9" y="162.0" text-anchor="middle" font-size="12" fill="#d1495b" font-weight="bold">11</text>
 <rect x="279.0" y="170" width="106.0" height="44" fill="#d1495b" stroke="black" stroke-width="0.6"/>
 <line x1="332.0" y1="170" x2="332.0" y2="149.0" stroke="#bbb" stroke-width="0.5"/>
 <text x="332.0" y="146.0" text-anchor="middle" font-size="12" fill="#d1495b" font-weight="bold">12</text>
@@ -89,8 +87,8 @@
 <text x="557" y="311" font-size="12" fill="#d1495b" font-weight="bold">9.  [OSCAR] rotate / V-absorb GEMM  ·  3.3µs</text>
 <rect x="540" y="320" width="11" height="11" fill="#cccccc" stroke="black" stroke-width="0.5"/>
 <text x="557" y="330" font-size="12" fill="#888">·   elementwise (idx/init)  ·  1.2µs</text>
-<rect x="540" y="339" width="11" height="11" fill="#7fb069" stroke="black" stroke-width="0.5"/>
-<text x="557" y="349" font-size="12" fill="#333">11.  HP-window attn  ·  6.8µs</text>
+<rect x="540" y="339" width="11" height="11" fill="#d1495b" stroke="black" stroke-width="0.5"/>
+<text x="557" y="349" font-size="12" fill="#d1495b" font-weight="bold">11.  [OSCAR] HP-window attn  ·  6.8µs</text>
 <rect x="540" y="358" width="11" height="11" fill="#d1495b" stroke="black" stroke-width="0.5"/>
 <text x="557" y="368" font-size="12" fill="#d1495b" font-weight="bold">12.  [OSCAR] INT2-KV attn  ·  50.7µs</text>
 <rect x="540" y="377" width="11" height="11" fill="#d1495b" stroke="black" stroke-width="0.5"/>
@@ -111,5 +109,5 @@
 <text x="1027" y="387" font-size="12" fill="#333">20.  down proj GEMM  ·  158.3µs</text>
 <text x="60" y="428" font-size="12" fill="#333" font-weight="bold">Full decode STEP ≈ 25.6 ms = 36 × layer (23.7 ms) + 1.9 ms per-step (LM head 1.66 ms + sampling/embed) — the LM head runs ONCE/step, not per layer.</text>
 <text x="60" y="446" font-size="12" fill="#333">Per layer: GPU busy ≈ 656 µs ≈ wall 661 µs (util ~99%). vs eager ~1032 µs/layer: graph replay removed ~371 µs of host launch gaps.</text>
-<text x="60" y="464" font-size="12" fill="#333">OSCAR-specific kernels (red) ≈ 66 µs (10% of busy): rotation GEMMs + INT2 attn + HP/INT2 merge + V-absorb — under graph replay, the honest serving cost (no launch overhead).</text>
+<text x="60" y="464" font-size="12" fill="#333">OSCAR-specific kernels (red) ≈ 73 µs (11% of busy): rotation GEMMs + INT2 attn + HP-window attn + merge + V-absorb — under graph replay, the honest serving cost (no launch overhead).</text>
 </svg>
