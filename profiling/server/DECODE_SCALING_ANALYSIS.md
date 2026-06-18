@@ -76,3 +76,61 @@ constant** that does NOT scale with seq. Only the KV-index bookkeeping grows
   under GEMM and is per-step constant.
 - Source: `profiling/server/profile_oscar_server.sh` traces; regenerate the table
   by re-parsing the `*-DECODE.trace.json.gz` files with the categories above.
+
+---
+
+# OSCAR decode kernel-time scaling vs BATCH (seq=16k)
+
+Same categorization, but now sweeping **batch size at fixed seq=16k** (graph **OFF**,
+4 decode steps). Ratios are GPU-busy-time based, so graph on/off is comparable
+(kernel durations identical; only host launch gaps differ, which we don't sum).
+
+## 5. Three-way split vs batch
+
+| batch | decode busy (ms) | **OSCAR %** | **GEMM %** | OTHER % | OSCAR (ms) | GEMM (ms) |
+|----:|-----:|-----:|-----:|-----:|-----:|-----:|
+| 1  | 100.5 | **10.2%** | 86.6% | 3.3% | 10.2 | 87.0 |
+| 4  | 111.9 | **18.8%** | 77.6% | 3.7% | 21.0 | 86.8 |
+| 16 | 168.1 | **44.1%** | 53.2% | 2.7% | 74.2 | 89.4 |
+| 32 | 248.7 | **60.9%** | 37.1% | 2.0% | 151.4 | 92.2 |
+
+**Read-out:**
+1. **GEMM absolute time is ~CONSTANT (87 → 92 ms) across B=1→32** — even though 32× more
+   tokens are processed. b=1 decode is already weight-bound, so adding batch just
+   **amortizes the same weight read** over more tokens (per-token GEMM: **21,749 →
+   720 µs/token, a 30× drop**). This is the textbook batching win.
+2. **OSCAR grows ~linearly with batch** (10 → 151 ms): each sequence's attention is
+   independent.
+3. **OSCAR% rises 10% → 61%; crossover (OSCAR > GEMM) ≈ batch 20** — *at just 16k
+   context*. Compare: at b=1 the same crossover needs **~200k seq**. So **batch 32 @
+   16k ≈ b=1 @ 512k** in OSCAR dominance — batching reaches the attention-bound
+   regime far more cheaply than context length does.
+
+## 6. OSCAR sub-breakdown vs batch (ms, summed over 4 steps)
+
+| OSCAR sub-kernel | B=1 | B=4 | B=16 | B=32 | scaling |
+|---|---:|---:|---:|---:|---|
+| **INT2 attn** | 6.49 | 16.31 | 65.56 | **137.43** | **∝ batch** (per-seq KV read) |
+| HP-window attn | 0.92 | 1.63 | 5.09 | 9.87 | grows w/ batch (per-seq window) |
+| merge | 0.81 | 0.98 | 1.18 | 2.00 | grows slowly |
+| **Q/K rotation GEMM** | 1.42 | 1.47 | 1.64 | **1.32** | **FLAT** (≈1.4 ms, batch-invariant) |
+| KV bookkeep/flush | 0.58 | 0.59 | 0.68 | 0.76 | ~flat |
+
+**Read-out (key for the rotation-overhead question):** even under batching — the regime
+where the hypothesis could bite — the **Q/K rotation GEMM stays a flat ~1.4 ms**, so as a
+fraction it *shrinks* (1.4% at B=1 → **0.5% at B=32**). What grows is the **INT2 attn (KV
+read) + HP-window attn**, i.e. the *attention* work, not the rotation. The OSCAR-specific
+machinery beyond plain INT2 (rotation + HP-window + merge) totals ~13 ms ≈ **5% at B=32**,
+and the rotation portion of that is negligible and batch-invariant.
+
+## 7. Combined picture (both axes)
+
+Decode reaches **attention(OSCAR)-bound** via EITHER long context (b=1, ~200k) OR
+moderate batch (B≈20 at 16k). In both axes:
+- **GEMM = weight-bound, flat** (per-token cost drops with batch).
+- **OSCAR growth = INT2/HP attention (KV read)** — fundamental to any KV-cache method.
+- **Rotation overhead = small, flat** in BOTH seq and batch → the "rotation induces
+  inefficiency" hypothesis is **not supported**; the rotation tax is ≤1.5% and shrinking.
+
+Figures: `figures/decode_oscar_vs_seq.svg` (context axis) and
+`figures/decode_oscar_vs_batch.svg` (batch axis).
