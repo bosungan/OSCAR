@@ -48,3 +48,4 @@ docs/
 # Traces (single-batch + multi-batch sweeps; any traces/ under profiling/)
 profiling/traces/
 profiling/**/traces/
+profiling/**/reports/
